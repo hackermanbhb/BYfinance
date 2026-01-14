@@ -32,7 +32,8 @@ const PlaidLinkButton = ({ onLinkSuccess }) => {
         onSuccess,
     };
 
-    const { open, ready } = usePlaidLink(config);
+    const isMock = token === 'link-sandbox-mock-token';
+    const { open, ready } = usePlaidLink(isMock ? null : config);
 
     if (loading) {
         return (
@@ -42,6 +43,27 @@ const PlaidLinkButton = ({ onLinkSuccess }) => {
             </button>
         );
     }
+
+    if (error || (!ready && !isMock)) {
+        return (
+            <button disabled className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 py-2 px-4 rounded-lg cursor-not-allowed">
+                <span>{error || 'Connecting...'}</span>
+            </button>
+        );
+    }
+
+    const handleClick = () => {
+        if (isMock) {
+            // Simulate Plaid Link Flow for Demo
+            const mockPublicToken = 'public-sandbox-mock-token';
+            // Add a small artificial delay to simulate "linking"
+            setTimeout(() => {
+                onSuccess(mockPublicToken);
+            }, 1000);
+        } else {
+            open();
+        }
+    };
 
     if (error || !ready) {
         return (
@@ -53,8 +75,8 @@ const PlaidLinkButton = ({ onLinkSuccess }) => {
 
     return (
         <button
-            onClick={() => open()}
-            disabled={!ready}
+            onClick={handleClick}
+            disabled={!ready && !isMock}
             className="flex items-center gap-2 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-card)] border border-[var(--text-muted)] border-opacity-20 hover:border-[var(--color-primary)] hover:border-opacity-50 text-[var(--text-primary)] py-2 px-4 rounded-lg transition-all hover:shadow-lg"
         >
             <Link2 size={18} className="text-[var(--color-secondary)]" />

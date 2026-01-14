@@ -5,11 +5,15 @@ export const createLinkToken = async () => {
         const response = await fetch(`${API_URL}/create_link_token`, {
             method: 'POST',
         });
+        if (!response.ok) {
+            console.error("Server returned error for link token:", response.status);
+            return null;
+        }
         const data = await response.json();
         return data.link_token;
     } catch (error) {
         console.error("Failed to create link token", error);
-        return null; // Handle error gracefully in UI
+        return null;
     }
 };
 

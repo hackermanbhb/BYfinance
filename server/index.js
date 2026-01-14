@@ -93,7 +93,12 @@ app.get('/api/transactions', async (req, res) => {
         const response = await client.transactionsSync({
             access_token: ACCESS_TOKEN,
         });
-        res.json(response.data);
+        // Normalize the transactionsSync response to a flat transactions array
+        const allTransactions = [
+            ...(response.data.added || []),
+            ...(response.data.modified || [])
+        ];
+        res.json({ transactions: allTransactions });
     } catch (error) {
         console.error('Error fetching transactions:', error);
         res.status(500).json({ error: error.message });

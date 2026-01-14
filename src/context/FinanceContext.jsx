@@ -43,16 +43,19 @@ export const FinanceProvider = ({ children }) => {
     }, []);
 
     const fetchInitialData = async () => {
-        const data = await api.fetchTransactions();
-        if (data?.error) {
-            console.warn("Error fetching data:", data.error);
-            if (data.error === 'Access token not set') {
-                disconnect();
+        try {
+            const data = await api.fetchTransactions();
+            if (data?.error) {
+                console.warn("Error fetching data:", data.error);
+                // Don't disconnect on expected mock mode errors - just ignore
+                return;
             }
-            return;
-        }
-        if (data && data.transactions) {
-            setTransactions(data.transactions);
+            if (data && data.transactions) {
+                setTransactions(data.transactions);
+            }
+        } catch (e) {
+            console.error("Failed to fetch initial data:", e);
+            // Gracefully handle - don't crash the app
         }
     };
 

@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { Plus, TrendingUp, TrendingDown } from 'lucide-react';
 
 const Dashboard = () => {
-    const { goals, addGoal, transactions, handleLinkSuccess, connected, aiInsights, isAnalyzing } = useFinance();
+    const { goals, addGoal, transactions, handleLinkSuccess, connected, aiInsights, isAnalyzing, disconnect } = useFinance();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleAddGoal = (goalData) => {

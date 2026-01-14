@@ -3,6 +3,49 @@ import { usePlaidLink } from 'react-plaid-link';
 import { createLinkToken, exchangePublicToken } from '../services/api';
 import { Link2 } from 'lucide-react';
 
+const RealPlaidLink = ({ token, onSuccess }) => {
+    const { open, ready } = usePlaidLink({
+        token,
+        onSuccess,
+    });
+
+    return (
+        <button
+            onClick={() => open()}
+            disabled={!ready}
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-card)] border border-[var(--text-muted)] border-opacity-20 hover:border-[var(--color-primary)] hover:border-opacity-50 text-[var(--text-primary)] py-2 px-4 rounded-lg transition-all hover:shadow-lg"
+        >
+            <Link2 size={18} className="text-[var(--color-secondary)]" />
+            <span>Connect Account</span>
+        </button>
+    );
+};
+
+const MockLinkButton = ({ onSuccess }) => {
+    const [isConnecting, setIsConnecting] = useState(false);
+
+    const handleClick = () => {
+        setIsConnecting(true);
+        // Simulate Plaid Link Flow for Demo
+        const mockPublicToken = 'public-sandbox-mock-token';
+        setTimeout(() => {
+            onSuccess(mockPublicToken);
+            setIsConnecting(false);
+        }, 1000);
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            disabled={isConnecting}
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-card)] border border-[var(--text-muted)] border-opacity-20 hover:border-[var(--color-primary)] hover:border-opacity-50 text-[var(--text-primary)] py-2 px-4 rounded-lg transition-all hover:shadow-lg"
+        >
+            <Link2 size={18} className="text-[var(--color-secondary)]" />
+            <span>{isConnecting ? 'Connecting...' : 'Connect Mock Account'}</span>
+        </button>
+    );
+};
+
 const PlaidLinkButton = ({ onLinkSuccess }) => {
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -27,14 +70,6 @@ const PlaidLinkButton = ({ onLinkSuccess }) => {
         if (onLinkSuccess) onLinkSuccess();
     }, [onLinkSuccess]);
 
-    const config = {
-        token,
-        onSuccess,
-    };
-
-    const isMock = token === 'link-sandbox-mock-token';
-    const { open, ready } = usePlaidLink(isMock ? null : config);
-
     if (loading) {
         return (
             <button disabled className="flex items-center gap-2 bg-white/5 border border-white/5 text-white/50 py-2 px-4 rounded-lg cursor-wait">
@@ -44,45 +79,21 @@ const PlaidLinkButton = ({ onLinkSuccess }) => {
         );
     }
 
-    if (error || (!ready && !isMock)) {
+    if (error) {
         return (
             <button disabled className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 py-2 px-4 rounded-lg cursor-not-allowed">
-                <span>{error || 'Connecting...'}</span>
+                <span>{error}</span>
             </button>
         );
     }
 
-    const handleClick = () => {
-        if (isMock) {
-            // Simulate Plaid Link Flow for Demo
-            const mockPublicToken = 'public-sandbox-mock-token';
-            // Add a small artificial delay to simulate "linking"
-            setTimeout(() => {
-                onSuccess(mockPublicToken);
-            }, 1000);
-        } else {
-            open();
-        }
-    };
+    const isMock = token && token.startsWith('link-sandbox-mock');
 
-    if (error || !ready) {
-        return (
-            <button disabled className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 py-2 px-4 rounded-lg cursor-not-allowed">
-                <span>{error || 'Connecting...'}</span>
-            </button>
-        );
+    if (isMock) {
+        return <MockLinkButton onSuccess={onSuccess} />;
     }
 
-    return (
-        <button
-            onClick={handleClick}
-            disabled={!ready && !isMock}
-            className="flex items-center gap-2 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-card)] border border-[var(--text-muted)] border-opacity-20 hover:border-[var(--color-primary)] hover:border-opacity-50 text-[var(--text-primary)] py-2 px-4 rounded-lg transition-all hover:shadow-lg"
-        >
-            <Link2 size={18} className="text-[var(--color-secondary)]" />
-            <span>Connect Account</span>
-        </button>
-    );
+    return <RealPlaidLink token={token} onSuccess={onSuccess} />;
 };
 
 export default PlaidLinkButton;

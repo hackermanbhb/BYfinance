@@ -34,9 +34,27 @@ export const FinanceProvider = ({ children }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     useEffect(() => {
-        // Attempt to fetch transactions if already connected (in real app, check auth)
-        // For demo, we rely on manual connect
+        // Attempt to restore connection state
+        const savedConnection = localStorage.getItem('plaid_connected');
+        if (savedConnection === 'true') {
+            setConnected(true);
+            fetchInitialData();
+        }
     }, []);
+
+    const fetchInitialData = async () => {
+        const data = await api.fetchTransactions();
+        if (data?.error) {
+            console.warn("Error fetching data:", data.error);
+            if (data.error === 'Access token not set') {
+                disconnect();
+            }
+            return;
+        }
+        if (data && data.transactions) {
+            setTransactions(data.transactions);
+        }
+    };
 
     // Run AI Analysis when transactions change
     useEffect(() => {
@@ -55,13 +73,17 @@ export const FinanceProvider = ({ children }) => {
 
         const context = { transactions, goals };
 
-        const [spending, budget] = await Promise.all([
-            spendingAgent.analyze(context),
-            budgetAgent.analyze(context)
-        ]);
-
-        setAiInsights({ spending, budget });
-        setIsAnalyzing(false);
+        try {
+            const [spending, budget] = await Promise.all([
+                spendingAgent.analyze(context),
+                budgetAgent.analyze(context)
+            ]);
+            setAiInsights({ spending, budget });
+        } catch (e) {
+            console.error("AI Analysis failed", e);
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     const addGoal = (goal) => {
@@ -74,14 +96,21 @@ export const FinanceProvider = ({ children }) => {
 
     const handleLinkSuccess = async () => {
         setConnected(true);
-        const data = await api.fetchTransactions();
-        if (data && data.transactions) {
-            setTransactions(data.transactions);
-        }
+        localStorage.setItem('plaid_connected', 'true');
+        await fetchInitialData();
+    };
+
+    const disconnect = () => {
+        setConnected(false);
+        setTransactions([]);
+        setAiInsights({ spending: null, budget: null });
+        localStorage.removeItem('plaid_connected');
+        // Optional: Call backend to invalidate token if needed
+        console.log('Disconnected');
     };
 
     return (
-        <FinanceContext.Provider value={{ goals, transactions, connected, aiInsights, isAnalyzing, addGoal, updateGoalProgress, handleLinkSuccess }}>
+        <FinanceContext.Provider value={{ goals, transactions, connected, aiInsights, isAnalyzing, addGoal, updateGoalProgress, handleLinkSuccess, disconnect }}>
             {children}
         </FinanceContext.Provider>
     );

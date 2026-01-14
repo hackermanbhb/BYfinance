@@ -43,7 +43,16 @@ const Dashboard = () => {
                 </div>
                 <div className="flex gap-4 items-center">
                     <ThemeToggle />
-                    <PlaidLinkButton onLinkSuccess={handleLinkSuccess} />
+                    {connected ? (
+                        <button
+                            onClick={disconnect}
+                            className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                            Unlink Bank
+                        </button>
+                    ) : (
+                        <PlaidLinkButton onLinkSuccess={handleLinkSuccess} />
+                    )}
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 bg-[var(--color-primary)] hover:opacity-90 active:scale-95 transition-all text-white font-bold py-2 px-6 rounded-lg shadow-lg"

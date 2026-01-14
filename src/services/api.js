@@ -29,8 +29,13 @@ export const exchangePublicToken = async (public_token) => {
 export const fetchTransactions = async () => {
     try {
         const response = await fetch(`${API_URL}/transactions`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { error: errorData.error || 'Failed to fetch' };
+        }
         return await response.json();
     } catch (error) {
         console.error("Failed to fetch transactions", error);
+        return { error: error.message };
     }
 };

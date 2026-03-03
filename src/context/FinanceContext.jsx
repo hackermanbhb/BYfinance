@@ -9,29 +9,37 @@ export const useFinance = () => useContext(FinanceContext);
 
 export const FinanceProvider = ({ children }) => {
     // Initial Mock Data
-    const [goals, setGoals] = useState([
-        {
-            id: 1,
-            name: 'Tesla Model 3',
-            targetAmount: 38000,
-            currentAmount: 12500,
-            deadline: '2026-12-31',
-            color: '#2ECC71' // Primary Green
-        },
-        {
-            id: 2,
-            name: 'Europe Trip',
-            targetAmount: 5000,
-            currentAmount: 1200,
-            deadline: '2026-06-01',
-            color: '#3498DB' // Secondary Blue
-        }
-    ]);
+    const [goals, setGoals] = useState(() => {
+        const savedGoals = localStorage.getItem('goals');
+        return savedGoals ? JSON.parse(savedGoals) : [
+            {
+                id: 1,
+                name: 'Tesla Model 3',
+                targetAmount: 38000,
+                currentAmount: 12500,
+                deadline: '2026-12-31',
+                color: '#2ECC71' // Primary Green
+            },
+            {
+                id: 2,
+                name: 'Europe Trip',
+                targetAmount: 5000,
+                currentAmount: 1200,
+                deadline: '2026-06-01',
+                color: '#3498DB' // Secondary Blue
+            }
+        ];
+    });
 
     const [transactions, setTransactions] = useState([]);
     const [connected, setConnected] = useState(false);
     const [aiInsights, setAiInsights] = useState({ spending: null, budget: null });
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    // Persist goals to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('goals', JSON.stringify(goals));
+    }, [goals]);
 
     useEffect(() => {
         // Attempt to restore connection state
@@ -90,11 +98,16 @@ export const FinanceProvider = ({ children }) => {
     };
 
     const addGoal = (goal) => {
-        setGoals([...goals, { ...goal, id: Date.now() }]);
+        console.log('Adding goal:', goal);
+        setGoals(prevGoals => {
+            const newGoals = [...prevGoals, { ...goal, id: Date.now() }];
+            console.log('New goals state:', newGoals);
+            return newGoals;
+        });
     };
 
     const updateGoalProgress = (id, amount) => {
-        setGoals(goals.map(g => g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g));
+        setGoals(prevGoals => prevGoals.map(g => g.id === id ? { ...g, currentAmount: g.currentAmount + amount } : g));
     };
 
     const handleLinkSuccess = async () => {

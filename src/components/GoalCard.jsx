@@ -5,6 +5,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const GoalCard = ({ goal }) => {
+    console.log('Rendering GoalCard:', goal);
     const percentage = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
     const remaining = goal.targetAmount - goal.currentAmount;
 

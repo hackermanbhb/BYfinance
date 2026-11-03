@@ -21,4 +21,12 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
+# Sure successor has its own upstream Git history and private local configuration.
+/sure-local/
+/archive/
+/.tmp/
+.env
+credentials.json
+token.json
+__pycache__/
 *.sw?
